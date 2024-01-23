@@ -1,6 +1,11 @@
-import '@/styles/globals.css'
-import type { AppProps } from 'next/app'
+import Hydrate from "@/components/hydrate/hydrate";
+import "@/styles/globals.css";
+import type { AppProps } from "next/app";
 
 export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+  return (
+    <Hydrate>
+      <Component {...pageProps} />
+    </Hydrate>
+  );
 }
