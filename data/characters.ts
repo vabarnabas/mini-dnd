@@ -43,7 +43,7 @@ export const characterEntities: CharacterEntity[] = [
     name: "Barni",
     skills: ["Greataxe"],
     img: "https://5e.tools/img/MPMM/Apprentice%20Wizard.png",
-    ac: 12,
+    ac: 10,
   },
   {
     id: uuidv4(),
@@ -60,7 +60,7 @@ export const characterEntities: CharacterEntity[] = [
     name: "Theseus",
     skills: ["Staff", "Healing Word"],
     img: "https://5e.tools/img/SCC/First-Year%20Student.png",
-    ac: 12,
+    ac: 10,
   },
 ];
 

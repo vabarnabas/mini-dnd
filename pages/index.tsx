@@ -19,10 +19,10 @@ export default function Home() {
     [characterEntities[0], characterEntities[1]],
     [
       createCharacterEntity(findCharacter("Goblin"), {
-        skills: ["Scimitar (Goblin)"],
+        skills: ["Scimitar"],
       }),
       createCharacterEntity(findCharacter("Goblin"), {
-        skills: ["Scimitar (Goblin)"],
+        skills: ["Scimitar"],
       }),
     ]
   );
@@ -104,7 +104,7 @@ export default function Home() {
             ))}
         </div>
         <div className="fixed bottom-0 ">
-          <div className="text-xs opacity-80 rounded border px-3 py-2 min-h-40 min-w-[30rem]">
+          <div className="text-xs opacity-80 rounded border px-3 py-2 min-h-40 max-h-60 overflow-y-auto min-w-[30rem]">
             {b.messages.map((message, messageIdx) => (
               <div
                 key={`${message}-${messageIdx}`}

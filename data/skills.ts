@@ -73,7 +73,7 @@ export const skills: Skill[] = [
     friendly: false,
   },
   {
-    name: "Scimitar (Goblin)",
+    name: "Scimitar",
     effect: (attacker, target) => {
       const attackRoll = roll(6);
       const attackModifier = calculateAbilityModifier(
@@ -86,7 +86,7 @@ export const skills: Skill[] = [
         target = { ...target, hp: target.hp - damage };
         return {
           isSuccess: true,
-          message: `${
+          message: `[${attacker.id}] ${
             attacker.characterName || attacker.name
           } dealt ${damage} (${attackRoll} 1d6 + ${attackModifier}DEX) damage to ${
             target.characterName || target.name
@@ -98,7 +98,9 @@ export const skills: Skill[] = [
 
       return {
         isSuccess: false,
-        message: `${attacker.characterName || attacker.name} missed`,
+        message: `[${attacker.id}]  ${
+          attacker.characterName || attacker.name
+        } missed`,
         target,
         attacker,
       };
