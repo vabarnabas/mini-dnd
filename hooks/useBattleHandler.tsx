@@ -19,7 +19,7 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
   const [targetingSkillName, setTargetingSkillName] = useState("");
   const [turn, setTurn] = useState(1);
   const [subTurn, setSubTurn] = useState(1);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<string[]>(["Turn 1"]);
 
   const characters = useMemo(
     () => [...players, ...enemies],
@@ -101,26 +101,31 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
         setPlayers([...players.filter((e) => e.id !== player.id), player]);
       }
 
-      if (target.hp <= 0) {
-        const initiative = initiatives.find(
-          (initiative) => initiative.id === target.id
-        ) as Initiative;
+      const initiative = initiatives.find(
+        (initiative) => initiative.id === target.id
+      ) as Initiative;
+
+      if (initiative.isAlive === true && target.hp <= 0) {
         initiative.isAlive = false;
         localMessages.push(`${target.name} died`);
-
-        setInitiatives(
-          [
-            ...initiatives.filter((initiative) => initiative.id !== target.id),
-            initiative,
-          ].sort((a, b) => b.initiative - a.initiative)
-        );
+      } else if (initiative.isAlive === false && target.hp > 0) {
+        initiative.isAlive = true;
+        localMessages.push(`${target.name} resurrected`);
       }
+
+      setInitiatives(
+        [
+          ...initiatives.filter((initiative) => initiative.id !== target.id),
+          initiative,
+        ].sort((a, b) => b.initiative - a.initiative)
+      );
 
       if (subTurn < initiatives.length) {
         setSubTurn(subTurn + 1);
       } else {
         setSubTurn(1);
         setTurn(turn + 1);
+        localMessages.push(`Turn ${turn + 1}`);
       }
 
       setMessages([...messages, ...localMessages]);
@@ -160,37 +165,54 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
       (enemy) => enemy.id === initiative.id
     ) as CharacterEntity;
 
-    if (
-      players.filter((player) => player.hp > 0).length &&
-      enemies.filter((enemy) => enemy.hp > 0).length
-    ) {
-      if (!isPlayerTurn()) {
-        if (character.hp > 0) {
-          skill(
-            character.skills[0],
-            initiative.id,
-            players.filter((player) => player.hp > 0)[
-              roll(players.filter((player) => player.hp > 0).length) - 1
-            ].id
-          );
-        } else {
-          if (subTurn < initiatives.length) {
-            setSubTurn(subTurn + 1);
+    const processNextTurn = () => {
+      if (
+        players.filter((player) => player.hp > 0).length &&
+        enemies.filter((enemy) => enemy.hp > 0).length
+      ) {
+        if (!isPlayerTurn()) {
+          if (character.hp > 0) {
+            skill(
+              character.skills[0],
+              initiative.id,
+              players.filter((player) => player.hp > 0)[
+                roll(players.filter((player) => player.hp > 0).length) - 1
+              ].id
+            );
           } else {
-            setSubTurn(1);
-            setTurn(turn + 1);
+            if (subTurn < initiatives.length) {
+              setSubTurn(subTurn + 1);
+            } else {
+              setSubTurn(1);
+              setTurn(turn + 1);
+            }
           }
-        }
-      } else {
-        if (character.hp <= 0) {
-          if (subTurn < initiatives.length) {
-            setSubTurn(subTurn + 1);
-          } else {
-            setSubTurn(1);
-            setTurn(turn + 1);
+        } else {
+          if (character.hp <= 0) {
+            if (subTurn < initiatives.length) {
+              setSubTurn(subTurn + 1);
+            } else {
+              setSubTurn(1);
+              setTurn(turn + 1);
+            }
           }
         }
       }
+    };
+
+    // Check if the character is alive before applying the delay
+    if (character.hp > 0) {
+      // Wait for 1 second (adjust the delay as needed)
+      const delay = 1000;
+      const timeoutId = setTimeout(() => {
+        processNextTurn();
+      }, delay);
+
+      // Clear the timeout on component unmount or when the turn changes
+      return () => clearTimeout(timeoutId);
+    } else {
+      // If the character is not alive, proceed without delay
+      processNextTurn();
     }
   }, [
     characters,

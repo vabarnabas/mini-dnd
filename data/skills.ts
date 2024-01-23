@@ -17,7 +17,7 @@ export const skills: Skill[] = [
       const damage = attackRoll + attackModifier;
 
       if (acRoll(attacker, target, "str")) {
-        target = { ...target, hp: target.hp - damage };
+        target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
           message: `${
@@ -50,12 +50,12 @@ export const skills: Skill[] = [
       const damage = attackRoll + attackModifier;
 
       if (acRoll(attacker, target, "str")) {
-        target = { ...target, hp: target.hp - damage };
+        target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
           message: `${
             attacker.characterName || attacker.name
-          } dealt ${damage} (${attackRoll} 1d12 + ${attackModifier} STR) damage to ${
+          } dealt ${damage} (${attackRoll} 1d6 + ${attackModifier} STR) damage to ${
             target.characterName || target.name
           }`,
           target,
@@ -83,7 +83,7 @@ export const skills: Skill[] = [
       const damage = attackRoll + attackModifier;
 
       if (acRoll(attacker, target, "dex")) {
-        target = { ...target, hp: target.hp - damage };
+        target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
           message: `[${attacker.id}] ${
@@ -117,7 +117,7 @@ export const skills: Skill[] = [
 
       const healing = healingRoll + healingModifier;
 
-      target = { ...target, hp: target.hp + healing };
+      target = { ...target, hp: Math.min(target.maxHp, target.hp + healing) };
       return {
         isSuccess: true,
         message: `${attacker.characterName || attacker.name} restored ${

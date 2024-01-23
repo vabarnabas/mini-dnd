@@ -11,6 +11,7 @@ import { sortByUUID } from "@/services/sortByUuid";
 import clsx from "clsx";
 import { Inter } from "next/font/google";
 import Image from "next/image";
+import { FaAngleUp } from "react-icons/fa";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,7 +36,10 @@ export default function Home() {
         <p className="text-2xl font-bold">{`Turn ${b.turn}`}</p>
         <div className="flex gap-x-2">
           {b.turnOrder.initiatives.map((initiative) => (
-            <div key={`initiative-${initiative.id}`} className="">
+            <div
+              key={`initiative-${initiative.id}`}
+              className="flex flex-col items-center gap-y-1"
+            >
               <div
                 className={clsx(
                   "relative h-12 w-12",
@@ -50,6 +54,9 @@ export default function Home() {
                   fill
                 />
               </div>
+              {b.turnOrder.initiative.id === initiative.id ? (
+                <FaAngleUp className="text-lg" />
+              ) : null}
             </div>
           ))}
         </div>
@@ -103,12 +110,17 @@ export default function Home() {
               />
             ))}
         </div>
-        <div className="fixed bottom-0 ">
-          <div className="text-xs opacity-80 rounded border px-3 py-2 min-h-40 max-h-60 overflow-y-auto min-w-[30rem]">
+        <div className="fixed bottom-0">
+          <div className="text-xs opacity-80 rounded border px-3 py-2 min-h-40 max-h-60 overflow-y-auto w-[34rem]">
             {b.messages.map((message, messageIdx) => (
               <div
                 key={`${message}-${messageIdx}`}
-                className={clsx(message.includes("missed") && "text-rose-500")}
+                className={clsx(
+                  "w-full",
+                  (message.includes("missed") || message.includes("died")) &&
+                    "text-rose-500",
+                  message.includes("Turn") && "font-bold text-base"
+                )}
               >
                 {message}
               </div>
