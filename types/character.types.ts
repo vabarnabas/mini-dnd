@@ -8,6 +8,11 @@ interface Character extends Stat {
   cr?: string;
 }
 
+interface Condition {
+  name: string;
+  turnsLeft: number;
+}
+
 interface CharacterEntity extends Omit<Character, "hpCalc"> {
   id: string;
   characterName?: string;
@@ -16,4 +21,5 @@ interface CharacterEntity extends Omit<Character, "hpCalc"> {
   level: number;
   exp: number;
   skills: string[];
+  conditions?: Condition[];
 }

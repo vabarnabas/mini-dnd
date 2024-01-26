@@ -11,6 +11,7 @@ interface Initiative {
   id: string;
   initiative: number;
   isAlive: boolean;
+  isSurprised?: boolean;
 }
 
 export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
@@ -72,6 +73,55 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
     rollInitiative()
   );
 
+  const updateCharacter = useCallback(
+    (id: string, update: Omit<Partial<CharacterEntity>, "id">) => {
+      if (players.some((player) => player.id === id)) {
+        setPlayers((prevPlayers) => [
+          ...prevPlayers.filter((player) => player.id !== id),
+          {
+            ...(prevPlayers.find(
+              (player) => player.id === id
+            ) as CharacterEntity),
+            ...update,
+          },
+        ]);
+      } else if (enemies.some((enemy) => enemy.id === id)) {
+        setEnemies((prevEnemies) => [
+          ...prevEnemies.filter((enemy) => enemy.id !== id),
+          {
+            ...(prevEnemies.find(
+              (enemy) => enemy.id === id
+            ) as CharacterEntity),
+            ...update,
+          },
+        ]);
+      }
+    },
+    [players, enemies]
+  );
+
+  const onTurnEnd = useCallback(() => {
+    if (subTurn < initiatives.length) {
+      setSubTurn((prevSubTurn) => prevSubTurn + 1);
+    } else {
+      setSubTurn(1);
+      setTurn((prevTurn) => prevTurn + 1);
+      setMessages((prevMessages) => [...prevMessages, `Turn ${turn + 1}`]);
+      characters
+        .filter((character) => !!character.conditions?.length)
+        .forEach((character) => {
+          updateCharacter(character.id, {
+            conditions: (character.conditions as Condition[])
+              .filter((condition) => condition.turnsLeft - 1 > 0)
+              .map((condition) => ({
+                name: condition.name,
+                turnsLeft: condition.turnsLeft - 1,
+              })),
+          });
+        });
+    }
+  }, [initiatives, subTurn, turn, characters, updateCharacter]);
+
   const isPlayerTurn = useCallback(() => {
     return (
       players.find((player) => player.id === initiatives[subTurn - 1].id) !==
@@ -79,90 +129,102 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
     );
   }, [initiatives, players, subTurn]);
 
+  const haveCondition = useCallback(
+    (id: string, condition: string) => {
+      return !!characters
+        .find((character) => character.id === id)
+        ?.conditions?.map((condition) => condition.name)
+        .includes(condition);
+    },
+    [characters]
+  );
+
   const action = useCallback(
     (name: string, attackerId: string, targetId: string) => {
-      const localMessages = [];
-      const skill = findSkill(name);
-
-      const attackingCharacter = characters.find(
-        (character) => character.id === attackerId
-      ) as CharacterEntity;
-      const targetCharacter = characters.find(
-        (character) => character.id === targetId
-      ) as CharacterEntity;
-
-      const { attacker, target, message } = skill.effect(
-        attackingCharacter,
-        targetCharacter
-      );
-
-      localMessages.push(message);
-
-      const enemyIndex = enemies
-        .map((enemy) => enemy.id)
-        .indexOf(isPlayerTurn() ? targetId : attackerId);
-
-      const playerIndex = players
-        .map((player) => player.id)
-        .indexOf(!isPlayerTurn() ? targetId : attackerId);
-
-      if (enemyIndex !== -1) {
-        const enemy = isPlayerTurn()
-          ? target
-          : enemies.map((e) => e.id).includes(attackerId) &&
-            enemies.map((e) => e.id).includes(targetId)
-          ? target
-          : attacker;
-        setEnemies([...enemies.filter((e) => e.id !== enemy.id), enemy]);
-      }
-      if (playerIndex !== -1) {
-        const player = !isPlayerTurn()
-          ? target
-          : players.map((p) => p.id).includes(attackerId) &&
-            players.map((p) => p.id).includes(targetId)
-          ? target
-          : attacker;
-        setPlayers([...players.filter((e) => e.id !== player.id), player]);
-      }
-
-      const initiative = initiatives.find(
-        (initiative) => initiative.id === target.id
-      ) as Initiative;
-
-      if (initiative.isAlive === true && target.hp <= 0) {
-        initiative.isAlive = false;
-        localMessages.push(`${target.name} died`);
-      } else if (!initiative.isAlive && target.hp > 0) {
-        initiative.isAlive = true;
-        localMessages.push(`${target.name} resurrected`);
-      }
-
-      setInitiatives(
-        [
-          ...initiatives.filter((initiative) => initiative.id !== target.id),
-          initiative,
-        ].sort((a, b) => b.initiative - a.initiative)
-      );
-
-      if (subTurn < initiatives.length) {
-        setSubTurn(subTurn + 1);
+      if (haveCondition(attackerId, "Surprised")) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          `${attackerId} is surprised`,
+        ]);
       } else {
-        setSubTurn(1);
-        setTurn(turn + 1);
-        localMessages.push(`Turn ${turn + 1}`);
+        const localMessages = [];
+        const skill = findSkill(name);
+
+        const attackingCharacter = characters.find(
+          (character) => character.id === attackerId
+        ) as CharacterEntity;
+        const targetCharacter = characters.find(
+          (character) => character.id === targetId
+        ) as CharacterEntity;
+
+        const { attacker, target, message } = skill.effect(
+          attackingCharacter,
+          targetCharacter
+        );
+
+        localMessages.push(message);
+
+        const enemyIndex = enemies
+          .map((enemy) => enemy.id)
+          .indexOf(isPlayerTurn() ? targetId : attackerId);
+
+        const playerIndex = players
+          .map((player) => player.id)
+          .indexOf(!isPlayerTurn() ? targetId : attackerId);
+
+        if (enemyIndex !== -1) {
+          const { id, ...enemy } = isPlayerTurn()
+            ? target
+            : enemies.map((e) => e.id).includes(attackerId) &&
+              enemies.map((e) => e.id).includes(targetId)
+            ? target
+            : attacker;
+          updateCharacter(id, enemy);
+        }
+        if (playerIndex !== -1) {
+          const { id, ...player } = !isPlayerTurn()
+            ? target
+            : players.map((p) => p.id).includes(attackerId) &&
+              players.map((p) => p.id).includes(targetId)
+            ? target
+            : attacker;
+          updateCharacter(id, player);
+        }
+
+        const initiative = initiatives.find(
+          (initiative) => initiative.id === target.id
+        ) as Initiative;
+
+        if (initiative.isAlive === true && target.hp <= 0) {
+          initiative.isAlive = false;
+          localMessages.push(`${target.name} died`);
+        } else if (!initiative.isAlive && target.hp > 0) {
+          initiative.isAlive = true;
+          localMessages.push(`${target.name} resurrected`);
+        }
+
+        setInitiatives(
+          [
+            ...initiatives.filter((initiative) => initiative.id !== target.id),
+            initiative,
+          ].sort((a, b) => b.initiative - a.initiative)
+        );
+
+        setMessages([...messages, ...localMessages]);
       }
 
-      setMessages([...messages, ...localMessages]);
+      onTurnEnd();
     },
     [
       enemies,
       messages,
-      turn,
-      subTurn,
       initiatives,
       characters,
       isPlayerTurn,
       players,
+      onTurnEnd,
+      haveCondition,
+      updateCharacter,
     ]
   );
 

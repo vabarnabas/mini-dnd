@@ -2,6 +2,7 @@ import { calculateProficiency } from "@/data/characters";
 import clsx from "clsx";
 import Image from "next/image";
 import React from "react";
+import { FaRegSurprise, FaSurprise } from "react-icons/fa";
 
 interface Props {
   character: CharacterEntity;
@@ -16,7 +17,7 @@ export default function CharacterToken({
 }: Props) {
   return (
     <div
-      title={character.id + " " + character.exp}
+      title={character.id + " " + JSON.stringify(character.conditions)}
       onClick={onClick}
       className={clsx(
         "flex gap-x-5 items-center px-3 py-1 rounded",
@@ -30,7 +31,19 @@ export default function CharacterToken({
         </div>
       ) : null}
       <div className="">
-        <p className="font-semibold text-lg">{character.name}</p>
+        <div className="flex items-center gap-x-1">
+          <p className="font-semibold text-lg">{character.name}</p>
+          {character.conditions?.some(
+            (condition) => condition.name === "Surprised"
+          ) ? (
+            <FaSurprise
+              title={character.conditions
+                .find((condition) => condition.name === "Surprised")
+                ?.turnsLeft.toString()}
+              className="text-amber-500"
+            />
+          ) : null}
+        </div>
         <p className="text-sm text-rose-400">{`${Math.max(character.hp, 0)} / ${
           character.maxHp
         } HP`}</p>

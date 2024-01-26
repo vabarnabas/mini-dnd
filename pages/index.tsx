@@ -21,9 +21,11 @@ export default function Home() {
     [
       createCharacterEntity(findCharacter("Goblin"), {
         skills: ["Scimitar"],
+        conditions: [{ name: "Surprised", turnsLeft: 1 }],
       }),
       createCharacterEntity(findCharacter("Goblin"), {
         skills: ["Scimitar"],
+        conditions: [{ name: "Surprised", turnsLeft: 1 }],
       }),
     ]
   );

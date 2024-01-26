@@ -67,12 +67,15 @@ export const characterEntities: CharacterEntity[] = [
   },
 ];
 
+interface CharacterEntityCreatorOptions {
+  level?: number;
+  skills?: string[];
+  conditions?: Condition[];
+}
+
 export function createCharacterEntity(
   character: Character,
-  options?: {
-    level?: number;
-    skills?: string[];
-  }
+  options?: CharacterEntityCreatorOptions
 ): CharacterEntity {
   const { hpCalc, ...rest } = character;
   const maxHp = hpCalc();
@@ -84,6 +87,7 @@ export function createCharacterEntity(
     level: options?.level || 1,
     exp: 0,
     skills: options?.skills || ["Greataxe"],
+    conditions: options?.conditions,
   };
 }
 
