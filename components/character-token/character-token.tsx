@@ -31,18 +31,20 @@ export default function CharacterToken({
         </div>
       ) : null}
       <div className="">
-        <div className="flex items-center gap-x-1">
+        <div className="flex items-center gap-x-2">
           <p className="font-semibold text-lg">{character.name}</p>
-          {character.conditions?.some(
-            (condition) => condition.name === "Surprised"
-          ) ? (
-            <FaSurprise
-              title={character.conditions
-                .find((condition) => condition.name === "Surprised")
-                ?.turnsLeft.toString()}
-              className="text-amber-500"
-            />
-          ) : null}
+          <div className="flex gap-x-2 text-sm">
+            {character.conditions?.some(
+              (condition) => condition.name === "Surprised"
+            ) ? (
+              <FaSurprise
+                title={`Surprised - ${character.conditions
+                  .find((condition) => condition.name === "Surprised")
+                  ?.turnsLeft.toString()} Turns Left`}
+                className="text-amber-500"
+              />
+            ) : null}
+          </div>
         </div>
         <p className="text-sm text-rose-400">{`${Math.max(character.hp, 0)} / ${
           character.maxHp

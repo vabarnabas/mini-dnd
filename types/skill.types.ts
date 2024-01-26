@@ -1,13 +1,13 @@
-interface SkillEffect {
+interface ActionEffect {
   isSuccess: boolean;
   message: string;
   attacker: CharacterEntity;
   target: CharacterEntity;
 }
 
-interface Skill {
+interface Action {
   name: string;
   description?: string;
-  effect: (attacker: CharacterEntity, target: CharacterEntity) => SkillEffect;
+  effect: (attacker: CharacterEntity, target: CharacterEntity) => ActionEffect;
   friendly: boolean;
 }

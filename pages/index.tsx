@@ -1,11 +1,12 @@
 import CharacterToken from "@/components/character-token/character-token";
+import MessageLine from "@/components/message-line/message-line";
 import {
   characterEntities,
   createCharacterEntity,
   findCharacter,
   findEntityById,
 } from "@/data/characters";
-import { findSkill } from "@/data/skills";
+import { findAction } from "@/data/actions";
 import { useBattleHandler } from "@/hooks/useBattleHandler";
 import { sortByUUID } from "@/services/sortByUuid";
 import clsx from "clsx";
@@ -71,7 +72,7 @@ export default function Home() {
               <CharacterToken
                 isTargeting={
                   b.targeting.isTargeting &&
-                  !findSkill(b.targeting.skillName).friendly
+                  !findAction(b.targeting.skillName).friendly
                 }
                 onClick={() => {
                   if (b.targeting.isTargeting) {
@@ -96,7 +97,7 @@ export default function Home() {
                 key={player.id}
                 isTargeting={
                   b.targeting.isTargeting &&
-                  !findSkill(b.targeting.skillName).friendly
+                  !findAction(b.targeting.skillName).friendly
                 }
                 onClick={() => {
                   if (b.targeting.isTargeting) {
@@ -113,19 +114,20 @@ export default function Home() {
             ))}
         </div>
         <div className="fixed bottom-0">
-          <div className="text-xs opacity-80 rounded border px-3 py-2 min-h-40 max-h-60 overflow-y-auto w-[34rem]">
-            {b.messages.map((message, messageIdx) => (
-              <div
-                key={`${message}-${messageIdx}`}
-                className={clsx(
-                  "w-full",
-                  (message.includes("missed") || message.includes("died")) &&
-                    "text-rose-500",
-                  message.includes("Turn") && "font-bold text-base"
-                )}
-              >
-                {message}
-              </div>
+          <div className="text-xs opacity-80 rounded border gap-y-0.5 flex flex-col px-3 py-2 min-h-40 max-h-60 overflow-y-auto w-[34rem]">
+            {b.messages.map((message, messageIndex) => (
+              <MessageLine
+                characters={b.characters}
+                key={`${message}-${messageIndex}`}
+                text={message}
+                messageIndex={messageIndex}
+                // className={clsx(
+                //   "w-full",
+                //   (message.includes("missed") || message.includes("died")) &&
+                //     "text-rose-500",
+                //   message.includes("Turn") && "font-bold text-base"
+                // )}
+              />
             ))}
           </div>
           <div className="py-6 flex gap-x-3">
@@ -148,7 +150,7 @@ export default function Home() {
                       "bg-rose-100 hover:bg-rose-200"
                   )}
                 >
-                  <p className="">{findSkill(skill).name}</p>
+                  <p className="">{findAction(skill).name}</p>
                 </button>
               ))}
           </div>

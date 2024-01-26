@@ -1,7 +1,13 @@
 import { acRoll, multiRoll, roll } from "@/services/roll";
 import { calculateAbilityModifier, calculateStatForEntity } from "./characters";
+import {
+  ATTACK_HIT,
+  ATTACK_MISS,
+  RESTORATION_HIT,
+  messageConstructor,
+} from "@/services/messageGenerator";
 
-export const skills: Skill[] = [
+export const actions: Action[] = [
   {
     name: "Greataxe",
     effect: (attacker, target) => {
@@ -16,11 +22,14 @@ export const skills: Skill[] = [
         target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
-          message: `${
-            attacker.characterName || attacker.name
-          } dealt ${damage} (${attackRoll} 1d12 + ${attackModifier} STR) damage to ${
-            target.characterName || target.name
-          }`,
+          message: messageConstructor(ATTACK_HIT, {
+            attackerId: attacker.id,
+            targetId: target.id,
+            damage: damage.toString(),
+            attackRoll: attackRoll.toString(),
+            attackType: "1d12",
+            attackModifier: "STR",
+          }),
           target,
           attacker,
         };
@@ -28,7 +37,7 @@ export const skills: Skill[] = [
 
       return {
         isSuccess: false,
-        message: `${attacker.characterName || attacker.name} missed`,
+        message: messageConstructor(ATTACK_MISS, { attackerId: attacker.id }),
         target,
         attacker,
       };
@@ -49,11 +58,14 @@ export const skills: Skill[] = [
         target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
-          message: `${
-            attacker.characterName || attacker.name
-          } dealt ${damage} (${attackRoll} 1d6 + ${attackModifier} STR) damage to ${
-            target.characterName || target.name
-          }`,
+          message: messageConstructor(ATTACK_HIT, {
+            attackerId: attacker.id,
+            targetId: target.id,
+            damage: damage.toString(),
+            attackRoll: attackRoll.toString(),
+            attackType: "1d6",
+            attackModifier: "STR",
+          }),
           target,
           attacker,
         };
@@ -82,11 +94,14 @@ export const skills: Skill[] = [
         target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
-          message: `${
-            attacker.characterName || attacker.name
-          } dealt ${damage} (${attackRoll} 1d6 + ${attackModifier} DEX) damage to ${
-            target.characterName || target.name
-          }`,
+          message: messageConstructor(ATTACK_HIT, {
+            attackerId: attacker.id,
+            targetId: target.id,
+            damage: damage.toString(),
+            attackRoll: attackRoll.toString(),
+            attackType: "1d6",
+            attackModifier: "DEX",
+          }),
           target,
           attacker,
         };
@@ -116,11 +131,14 @@ export const skills: Skill[] = [
       target = { ...target, hp: Math.min(target.maxHp, target.hp + healing) };
       return {
         isSuccess: true,
-        message: `${attacker.characterName || attacker.name} restored ${
-          healingRoll + healingModifier
-        } (${healingRoll} 1d4 + ${healingModifier} INT) health to ${
-          target.characterName || target.name
-        }`,
+        message: messageConstructor(RESTORATION_HIT, {
+          attackerId: attacker.id,
+          targetId: target.id,
+          restoration: healing.toString(),
+          restorationRoll: healingRoll.toString(),
+          restorationType: "1d6",
+          restorationModifier: "DEX",
+        }),
         target,
         attacker,
       };
@@ -129,6 +147,6 @@ export const skills: Skill[] = [
   },
 ];
 
-export function findSkill(name: string) {
-  return skills.find((skill) => skill.name === name) as Skill;
+export function findAction(name: string) {
+  return actions.find((skill) => skill.name === name) as Action;
 }

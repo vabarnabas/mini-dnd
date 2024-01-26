@@ -3,8 +3,9 @@ import {
   calculateStatForEntity,
 } from "@/data/characters";
 import { challengeExp } from "@/data/exp";
-import { findSkill } from "@/data/skills";
+import { findAction } from "@/data/actions";
 import { multiRoll, roll } from "@/services/roll";
+import exp from "constants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Initiative {
@@ -51,6 +52,12 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
         }));
 
         setPlayers(updatedPlayers);
+        players.forEach((player) => {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            `::char(${player.id}) gained ${expGain} EXP`,
+          ]);
+        });
       }
     },
     [enemies, players]
@@ -148,7 +155,7 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
         ]);
       } else {
         const localMessages = [];
-        const skill = findSkill(name);
+        const skill = findAction(name);
 
         const attackingCharacter = characters.find(
           (character) => character.id === attackerId
@@ -244,21 +251,11 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
               ].id
             );
           } else {
-            if (subTurn < initiatives.length) {
-              setSubTurn(subTurn + 1);
-            } else {
-              setSubTurn(1);
-              setTurn(turn + 1);
-            }
+            onTurnEnd();
           }
         } else {
           if (character.hp <= 0) {
-            if (subTurn < initiatives.length) {
-              setSubTurn(subTurn + 1);
-            } else {
-              setSubTurn(1);
-              setTurn(turn + 1);
-            }
+            onTurnEnd();
           }
         }
       } else {
@@ -272,17 +269,7 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
         }
       }
     },
-    [
-      battleEnded,
-      players,
-      enemies,
-      initiatives,
-      isPlayerTurn,
-      endBattle,
-      turn,
-      subTurn,
-      action,
-    ]
+    [battleEnded, players, enemies, isPlayerTurn, endBattle, action, onTurnEnd]
   );
 
   const turnOrder = {

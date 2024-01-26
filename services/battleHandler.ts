@@ -1,4 +1,4 @@
-import { findSkill } from "@/data/skills";
+import { findAction } from "@/data/actions";
 
 export class BattleHandler {
   player: CharacterEntity;
@@ -12,7 +12,7 @@ export class BattleHandler {
   }
 
   skill(name: string, isPlayerTurn?: boolean) {
-    const skill = findSkill(name);
+    const skill = findAction(name);
     const { attacker, target, message } = isPlayerTurn
       ? skill.effect(this.player, this.enemy)
       : skill.effect(this.enemy, this.player);
