@@ -16,7 +16,7 @@ export default function CharacterToken({
 }: Props) {
   return (
     <div
-      title={character.id + " " + calculateProficiency(character)}
+      title={character.id + " " + character.exp}
       onClick={onClick}
       className={clsx(
         "flex gap-x-5 items-center px-3 py-1 rounded",

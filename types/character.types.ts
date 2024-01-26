@@ -5,6 +5,7 @@ interface Character extends Stat {
   img?: string;
   proficiency?: number;
   ac: number;
+  cr?: string;
 }
 
 interface CharacterEntity extends Omit<Character, "hpCalc"> {
@@ -13,5 +14,6 @@ interface CharacterEntity extends Omit<Character, "hpCalc"> {
   hp: number;
   maxHp: number;
   level: number;
+  exp: number;
   skills: string[];
 }

@@ -33,7 +33,7 @@ export default function Home() {
       className={`flex min-h-screen flex-col items-center justify-between ${inter.className}`}
     >
       <div className="fixed top-0 inset-x-0 flex flex-col items-center">
-        <p className="text-2xl font-bold">{`Turn ${b.turn}`}</p>
+        <p className="text-2xl font-bold">{`Turn ${b.turnOrder.turn}`}</p>
         <div className="flex gap-x-2">
           {b.turnOrder.initiatives.map((initiative) => (
             <div
@@ -73,7 +73,7 @@ export default function Home() {
                 }
                 onClick={() => {
                   if (b.targeting.isTargeting) {
-                    b.skill(
+                    b.action(
                       b.targeting.skillName,
                       b.turnOrder.initiative.id,
                       enemy.id
@@ -98,7 +98,7 @@ export default function Home() {
                 }
                 onClick={() => {
                   if (b.targeting.isTargeting) {
-                    b.skill(
+                    b.action(
                       b.targeting.skillName,
                       b.turnOrder.initiative.id,
                       player.id

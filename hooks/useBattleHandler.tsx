@@ -2,6 +2,7 @@ import {
   calculateAbilityModifier,
   calculateStatForEntity,
 } from "@/data/characters";
+import { challengeExp } from "@/data/exp";
 import { findSkill } from "@/data/skills";
 import { multiRoll, roll } from "@/services/roll";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -20,13 +21,39 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
   const [turn, setTurn] = useState(1);
   const [subTurn, setSubTurn] = useState(1);
   const [messages, setMessages] = useState<string[]>(["Turn 1"]);
+  const [battleEnded, setBattleEnded] = useState(false);
 
   const characters = useMemo(
     () => [...players, ...enemies],
     [enemies, players]
   );
 
-  console.log(players, enemies);
+  const endBattle = useCallback(
+    (isVictory?: boolean) => {
+      if (isVictory) {
+        setMessages((prevMessages) => [...prevMessages, "You have won"]);
+        const expGain = enemies.reduce((acc, curr) => {
+          if (curr.cr) {
+            const entries = Object.entries(challengeExp);
+            const value = entries.find((entry) => entry[0] === curr.cr) as [
+              string,
+              number
+            ];
+            return acc + value[1];
+          }
+          return acc;
+        }, 0);
+
+        const updatedPlayers = players.map((player) => ({
+          ...player,
+          exp: player.exp + expGain,
+        }));
+
+        setPlayers(updatedPlayers);
+      }
+    },
+    [enemies, players]
+  );
 
   const rollInitiative = useCallback(() => {
     return characters
@@ -46,16 +73,13 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
   );
 
   const isPlayerTurn = useCallback(() => {
-    if (
-      players.map((player) => player.id).includes(initiatives[subTurn - 1].id)
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    return (
+      players.find((player) => player.id === initiatives[subTurn - 1].id) !==
+      undefined
+    );
   }, [initiatives, players, subTurn]);
 
-  const skill = useCallback(
+  const action = useCallback(
     (name: string, attackerId: string, targetId: string) => {
       const localMessages = [];
       const skill = findSkill(name);
@@ -108,7 +132,7 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
       if (initiative.isAlive === true && target.hp <= 0) {
         initiative.isAlive = false;
         localMessages.push(`${target.name} died`);
-      } else if (initiative.isAlive === false && target.hp > 0) {
+      } else if (!initiative.isAlive && target.hp > 0) {
         initiative.isAlive = true;
         localMessages.push(`${target.name} resurrected`);
       }
@@ -142,37 +166,15 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
     ]
   );
 
-  const turnOrder = {
-    turn,
-    subTurn,
-    initiatives,
-    initiative: initiatives[subTurn - 1],
-    isPlayerTurn,
-  };
-
-  const targeting = {
-    isTargeting,
-    skillName: targetingSkillName,
-    set: (value: boolean, skillName?: string) => {
-      setIsTargeting(value);
-      setTargetingSkillName(skillName || "");
-    },
-  };
-
-  useEffect(() => {
-    const initiative = initiatives[subTurn - 1];
-    const character = characters.find(
-      (enemy) => enemy.id === initiative.id
-    ) as CharacterEntity;
-
-    const processNextTurn = () => {
+  const processNextTurn = useCallback(
+    (character: CharacterEntity, initiative: Initiative) => {
       if (
         players.filter((player) => player.hp > 0).length &&
         enemies.filter((enemy) => enemy.hp > 0).length
       ) {
         if (!isPlayerTurn()) {
           if (character.hp > 0) {
-            skill(
+            action(
               character.skills[0],
               initiative.id,
               players.filter((player) => player.hp > 0)[
@@ -197,40 +199,71 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
             }
           }
         }
+      } else {
+        if (!battleEnded) {
+          setBattleEnded(true);
+          if (players.filter((player) => player.hp > 0).length) {
+            endBattle(true);
+          } else {
+            endBattle(false);
+          }
+        }
       }
-    };
+    },
+    [
+      battleEnded,
+      players,
+      enemies,
+      initiatives,
+      isPlayerTurn,
+      endBattle,
+      turn,
+      subTurn,
+      action,
+    ]
+  );
 
-    // Check if the character is alive before applying the delay
+  const turnOrder = {
+    turn,
+    subTurn,
+    initiatives,
+    initiative: initiatives[subTurn - 1],
+    isPlayerTurn,
+  };
+
+  const targeting = {
+    isTargeting,
+    skillName: targetingSkillName,
+    set: (value: boolean, skillName?: string) => {
+      setIsTargeting(value);
+      setTargetingSkillName(skillName || "");
+    },
+  };
+
+  useEffect(() => {
+    const initiative = initiatives[subTurn - 1];
+    const character = characters.find(
+      (enemy) => enemy.id === initiative.id
+    ) as CharacterEntity;
+
     if (character.hp > 0) {
-      // Wait for 1 second (adjust the delay as needed)
       const delay = 1000;
       const timeoutId = setTimeout(() => {
-        processNextTurn();
+        processNextTurn(character, initiative);
       }, delay);
 
-      // Clear the timeout on component unmount or when the turn changes
       return () => clearTimeout(timeoutId);
     } else {
-      // If the character is not alive, proceed without delay
-      processNextTurn();
+      processNextTurn(character, initiative);
     }
-  }, [
-    characters,
-    initiatives,
-    isPlayerTurn,
-    skill,
-    subTurn,
-    turn,
-    players,
-    enemies,
-  ]);
+  }, [initiatives, subTurn, processNextTurn, characters]);
 
   return {
+    battleEnded,
     players,
     enemies,
-    turn,
     messages,
-    skill,
+    action,
     targeting,
     turnOrder,
     characters,

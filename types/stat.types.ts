@@ -6,3 +6,5 @@ interface Stat {
   dex: number;
   cha: number;
 }
+
+type Stats = "con" | "str" | "dex" | "int" | "wis" | "cha";

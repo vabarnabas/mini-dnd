@@ -1,9 +1,5 @@
 import { acRoll, multiRoll, roll } from "@/services/roll";
-import {
-  calculateAbilityModifier,
-  calculateProficiency,
-  calculateStatForEntity,
-} from "./characters";
+import { calculateAbilityModifier, calculateStatForEntity } from "./characters";
 
 export const skills: Skill[] = [
   {
@@ -86,9 +82,9 @@ export const skills: Skill[] = [
         target = { ...target, hp: Math.max(0, target.hp - damage) };
         return {
           isSuccess: true,
-          message: `[${attacker.id}] ${
+          message: `${
             attacker.characterName || attacker.name
-          } dealt ${damage} (${attackRoll} 1d6 + ${attackModifier}DEX) damage to ${
+          } dealt ${damage} (${attackRoll} 1d6 + ${attackModifier} DEX) damage to ${
             target.characterName || target.name
           }`,
           target,

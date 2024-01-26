@@ -16,6 +16,7 @@ export const character: Character[] = [
     hpCalc: () => multiRoll(roll(6), roll(6)),
     img: "https://5e.tools/img/MM/Goblin.png",
     ac: 15,
+    cr: "1/4",
   },
 ];
 
@@ -40,6 +41,7 @@ export const characterEntities: CharacterEntity[] = [
     wis: 10,
     cha: 11,
     level: 1,
+    exp: 0,
     name: "Barni",
     skills: ["Greataxe"],
     img: "https://5e.tools/img/MPMM/Apprentice%20Wizard.png",
@@ -57,6 +59,7 @@ export const characterEntities: CharacterEntity[] = [
     wis: 17,
     cha: 12,
     level: 1,
+    exp: 0,
     name: "Theseus",
     skills: ["Staff", "Healing Word"],
     img: "https://5e.tools/img/SCC/First-Year%20Student.png",
@@ -79,14 +82,12 @@ export function createCharacterEntity(
     maxHp,
     hp: maxHp,
     level: options?.level || 1,
+    exp: 0,
     skills: options?.skills || ["Greataxe"],
   };
 }
 
-export function calculateStatForEntity(
-  entity: CharacterEntity,
-  stat: "con" | "str" | "dex" | "int" | "wis"
-) {
+export function calculateStatForEntity(entity: CharacterEntity, stat: Stats) {
   return entity[stat];
 }
 
