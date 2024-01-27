@@ -2,7 +2,7 @@ import { acRoll, multiRoll, roll } from "@/services/roll";
 import { calculateAbilityModifier, calculateStatForEntity } from "./characters";
 import {
   ATTACK_HIT,
-  ATTACK_MISS,
+  MISS,
   RESTORATION_HIT,
   messageConstructor,
 } from "@/services/messageGenerator";
@@ -37,7 +37,7 @@ export const actions: Action[] = [
 
       return {
         isSuccess: false,
-        message: messageConstructor(ATTACK_MISS, { attackerId: attacker.id }),
+        message: messageConstructor(MISS, { attackerId: attacker.id }),
         target,
         attacker,
       };
@@ -73,7 +73,7 @@ export const actions: Action[] = [
 
       return {
         isSuccess: false,
-        message: `${attacker.characterName || attacker.name} missed`,
+        message: messageConstructor(MISS, { attackerId: attacker.id }),
         target,
         attacker,
       };
@@ -109,9 +109,7 @@ export const actions: Action[] = [
 
       return {
         isSuccess: false,
-        message: `[${attacker.id}]  ${
-          attacker.characterName || attacker.name
-        } missed`,
+        message: messageConstructor(MISS, { attackerId: attacker.id }),
         target,
         attacker,
       };

@@ -5,8 +5,14 @@ import {
 import { challengeExp } from "@/data/exp";
 import { findAction } from "@/data/actions";
 import { multiRoll, roll } from "@/services/roll";
-import exp from "constants";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  CONDITION,
+  DIED,
+  EXP_GAIN,
+  RESURRECTED,
+  messageConstructor,
+} from "@/services/messageGenerator";
 
 interface Initiative {
   id: string;
@@ -55,7 +61,10 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
         players.forEach((player) => {
           setMessages((prevMessages) => [
             ...prevMessages,
-            `::char(${player.id}) gained ${expGain} EXP`,
+            messageConstructor(EXP_GAIN, {
+              targetId: player.id,
+              exp: expGain.toString(),
+            }),
           ]);
         });
       }
@@ -151,10 +160,10 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
       if (haveCondition(attackerId, "Surprised")) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          `${attackerId} is surprised`,
+          messageConstructor(CONDITION, { attackerId, condition: "surprised" }),
         ]);
       } else {
-        const localMessages = [];
+        const localMessages: string[] = [];
         const skill = findAction(name);
 
         const attackingCharacter = characters.find(
@@ -204,10 +213,12 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
 
         if (initiative.isAlive === true && target.hp <= 0) {
           initiative.isAlive = false;
-          localMessages.push(`${target.name} died`);
+          localMessages.push(messageConstructor(DIED, { targetId: target.id }));
         } else if (!initiative.isAlive && target.hp > 0) {
           initiative.isAlive = true;
-          localMessages.push(`${target.name} resurrected`);
+          localMessages.push(
+            messageConstructor(RESURRECTED, { targetId: target.id })
+          );
         }
 
         setInitiatives(
@@ -217,14 +228,13 @@ export function useBattleHandler(p: CharacterEntity[], e: CharacterEntity[]) {
           ].sort((a, b) => b.initiative - a.initiative)
         );
 
-        setMessages([...messages, ...localMessages]);
+        setMessages((prevMessages) => [...prevMessages, ...localMessages]);
       }
 
       onTurnEnd();
     },
     [
       enemies,
-      messages,
       initiatives,
       characters,
       isPlayerTurn,

@@ -19,28 +19,30 @@ const parseText = (
   characters: CharacterEntity[],
   messageIndex: number
 ) => {
-  const parts = text.split(/(::char\([^)]+\)|::dmg\([^)]+\))/);
+  const parts = text.split(/(--char\([^)]+\)|--dmg\([^)]+\))/);
+  console.log(parts);
 
   return (
     <div className={classNames(text, "inline")}>
       {parts.map((part, index) => {
-        if (part.startsWith("::char(")) {
+        if (part.startsWith("--char(")) {
           const id = part.match(/\(([^)]+)\)/)?.[1];
           return (
             <span
               key={`${part}-${index}-${messageIndex}`}
-              className="underline"
+              title={id}
+              className="font-semibold"
             >
               {characters.find((character) => character.id === id)?.name ||
                 "asd"}
             </span>
           );
-        } else if (part.startsWith("::dmg(")) {
+        } else if (part.startsWith("--dmg(")) {
         } else {
           return (
             <span
               title={
-                parts[index + 1] && parts[index + 1].startsWith("::dmg(")
+                parts[index + 1] && parts[index + 1].startsWith("--dmg(")
                   ? parts[index + 1].match(/\((.*?)\)/)?.[1]
                   : ""
               }
